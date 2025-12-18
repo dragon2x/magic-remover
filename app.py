@@ -64,7 +64,7 @@ with tab1:
             
             # Debug: Show the image to verify it's loaded correctly
             with st.expander("프레임 미리보기 (디버그)", expanded=False):
-                st.image(pil_image, caption=f"프레임 {frame_index}", use_container_width=True)
+                st.image(pil_image, caption=f"프레임 {frame_index}")
         else:
             st.error(f"프레임을 읽을 수 없습니다. 프레임 인덱스: {frame_index}, ret: {ret}")
             vid_cap.release()
