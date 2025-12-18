@@ -1,9 +1,8 @@
 streamlit==1.38.0
 opencv-python-headless
-numpy<2
+numpy==1.26.4
 streamlit-drawable-canvas
-pillow<10.0.0
+pillow==9.5.0
 moviepy==1.0.3
 pymupdf
 proglog
-
