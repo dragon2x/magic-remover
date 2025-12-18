@@ -80,14 +80,11 @@ with tab1:
             if canvas_bg_image.mode == 'RGBA':
                 canvas_bg_image = canvas_bg_image.convert('RGB')
 
-            # Convert PIL Image to numpy array for streamlit-drawable-canvas
-            canvas_bg_array = np.array(canvas_bg_image)
-
             canvas_result = st_canvas(
                 fill_color="rgba(255, 255, 255, 1.0)",
                 stroke_width=stroke_width if drawing_mode_val == "freedraw" else 1,
                 stroke_color=stroke_color,
-                background_image=Image.fromarray(canvas_bg_array),
+                background_image=canvas_bg_image,
                 update_streamlit=realtime_update,
                 height=canvas_height,
                 width=canvas_width,
@@ -200,7 +197,7 @@ with tab2:
                     stroke_width=1,
                     stroke_color="#ff0000",
                     background_color="#ffffff",
-                    background_image=Image.fromarray(np.array(canvas_bg_pdf)),
+                    background_image=canvas_bg_pdf,
                     update_streamlit=True,
                     height=canvas_height,
                     width=canvas_width,
