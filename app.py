@@ -18,7 +18,7 @@ tab1, tab2 = st.tabs(["🎬 동영상 (Video)", "📄 문서 (PDF)"])
 with tab1:
     st.header("동영상 워터마크 제거")
 
-    st.info("💡 오른쪽 하단 로고가 자동으로 선택됩니다. 프레임에서 빨간 사각형을 확인하세요!")
+    st.info("💡 기본값으로 오른쪽 하단 로고 좌표가 설정됩니다. 필요시 수정 가능합니다!")
 
     uploaded_file = st.file_uploader("동영상 파일 업로드 (Upload Video)", type=["mp4", "mov", "avi"], key="video_upload")
 
@@ -50,18 +50,15 @@ with tab1:
             st.image(pil_image, caption=f"프레임 {frame_index}", use_container_width=True)
 
             st.markdown("### 워터마크 영역 설정")
+            st.caption("좌표를 입력하세요. (0,0)은 좌측 상단입니다.")
 
-            # 자동으로 오른쪽 하단 계산 (비디오 크기의 약 15% 영역)
-            logo_width = int(video_width * 0.15)  # 화면 폭의 15%
-            logo_height = int(video_height * 0.12)  # 화면 높이의 12%
-
-            # 오른쪽 하단 좌표 자동 계산
-            x_start = video_width - logo_width - 20  # 오른쪽 끝에서 20픽셀 여유
-            y_start = video_height - logo_height - 20  # 아래 끝에서 20픽셀 여유
-            x_end = video_width - 10
-            y_end = video_height - 10
-
-            st.info(f"🎯 오른쪽 하단 로고 자동 선택됨 ({logo_width}x{logo_height} 픽셀)")
+            col1, col2 = st.columns(2)
+            with col1:
+                x_start = st.number_input("X 시작", min_value=0, max_value=video_width, value=1101, step=1, key="vid_x1")
+                y_start = st.number_input("Y 시작", min_value=0, max_value=video_height, value=660, step=1, key="vid_y1")
+            with col2:
+                x_end = st.number_input("X 끝", min_value=0, max_value=video_width, value=1238, step=1, key="vid_x2")
+                y_end = st.number_input("Y 끝", min_value=0, max_value=video_height, value=681, step=1, key="vid_y2")
 
             # Preview rectangle on frame
             preview_frame = frame_rgb.copy()
@@ -132,18 +129,15 @@ with tab2:
             st.image(pil_image, caption="첫 페이지 미리보기", use_container_width=True)
 
             st.markdown("### 워터마크 영역 설정")
+            st.caption("좌표를 입력하세요. (0,0)은 좌측 상단입니다.")
 
-            # 자동으로 오른쪽 하단 계산 (PDF 크기의 약 15% 영역)
-            logo_width_pdf = int(img_w * 0.15)
-            logo_height_pdf = int(img_h * 0.12)
-
-            # 오른쪽 하단 좌표 자동 계산
-            pdf_x_start = img_w - logo_width_pdf - 20
-            pdf_y_start = img_h - logo_height_pdf - 20
-            pdf_x_end = img_w - 10
-            pdf_y_end = img_h - 10
-
-            st.info(f"🎯 오른쪽 하단 로고 자동 선택됨 ({logo_width_pdf}x{logo_height_pdf} 픽셀)")
+            col1_pdf, col2_pdf = st.columns(2)
+            with col1_pdf:
+                pdf_x_start = st.number_input("X 시작", min_value=0, max_value=img_w, value=1101, step=1, key="pdf_x1")
+                pdf_y_start = st.number_input("Y 시작", min_value=0, max_value=img_h, value=660, step=1, key="pdf_y1")
+            with col2_pdf:
+                pdf_x_end = st.number_input("X 끝", min_value=0, max_value=img_w, value=1238, step=1, key="pdf_x2")
+                pdf_y_end = st.number_input("Y 끝", min_value=0, max_value=img_h, value=681, step=1, key="pdf_y2")
 
             # Preview rectangle
             preview_img = np.array(pil_image)
@@ -178,4 +172,4 @@ with tab2:
                         st.error(f"❌ 실패: {msg}")
 
 st.markdown("---")
-st.caption("💡 팁: 오른쪽 하단 로고가 자동으로 선택됩니다. 다른 위치는 로컬(ngrok)에서 마우스로 그릴 수 있습니다!")
+st.caption("💡 팁: 좌표는 수정 가능합니다. 마우스로 선택하려면 로컬(ngrok)에서 app_with_canvas.py를 사용하세요!")
