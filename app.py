@@ -73,14 +73,16 @@ with tab1:
                 canvas_width = img_w
                 canvas_height = img_h
             
-            # Resize image to exactly match canvas dimensions (fixes display on Streamlit Cloud)
+            # Resize image to exactly match canvas dimensions
             canvas_bg_image = pil_image.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
+            # Convert to RGBA to ensure compatibility with canvas
+            if canvas_bg_image.mode != 'RGBA':
+                canvas_bg_image = canvas_bg_image.convert('RGBA')
 
             canvas_result = st_canvas(
                 fill_color="rgba(255, 255, 255, 1.0)",
                 stroke_width=stroke_width if drawing_mode_val == "freedraw" else 1,
                 stroke_color=stroke_color,
-                background_color="#ffffff",
                 background_image=canvas_bg_image,
                 update_streamlit=realtime_update,
                 height=canvas_height,
