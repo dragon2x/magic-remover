@@ -18,7 +18,7 @@ tab1, tab2 = st.tabs(["🎬 동영상 (Video)", "📄 문서 (PDF)"])
 with tab1:
     st.header("동영상 워터마크 제거")
 
-    st.info("💡 워터마크가 있는 영역의 좌표를 입력하세요. 프레임에서 위치를 확인할 수 있습니다.")
+    st.info("💡 오른쪽 하단 로고가 자동으로 선택됩니다. 프레임에서 빨간 사각형을 확인하세요!")
 
     uploaded_file = st.file_uploader("동영상 파일 업로드 (Upload Video)", type=["mp4", "mov", "avi"], key="video_upload")
 
@@ -50,60 +50,53 @@ with tab1:
             st.image(pil_image, caption=f"프레임 {frame_index}", use_container_width=True)
 
             st.markdown("### 워터마크 영역 설정")
-            st.markdown("아래에 워터마크가 있는 사각형 영역의 좌표를 입력하세요.")
 
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                x_start = st.number_input("X 시작", min_value=0, max_value=video_width, value=0, key="x_start")
-            with col2:
-                y_start = st.number_input("Y 시작", min_value=0, max_value=video_height, value=0, key="y_start")
-            with col3:
-                x_end = st.number_input("X 끝", min_value=0, max_value=video_width, value=min(200, video_width), key="x_end")
-            with col4:
-                y_end = st.number_input("Y 끝", min_value=0, max_value=video_height, value=min(100, video_height), key="y_end")
+            # 자동으로 오른쪽 하단 계산 (비디오 크기의 약 15% 영역)
+            logo_width = int(video_width * 0.15)  # 화면 폭의 15%
+            logo_height = int(video_height * 0.12)  # 화면 높이의 12%
+
+            # 오른쪽 하단 좌표 자동 계산
+            x_start = video_width - logo_width - 20  # 오른쪽 끝에서 20픽셀 여유
+            y_start = video_height - logo_height - 20  # 아래 끝에서 20픽셀 여유
+            x_end = video_width - 10
+            y_end = video_height - 10
+
+            st.info(f"🎯 오른쪽 하단 로고 자동 선택됨 ({logo_width}x{logo_height} 픽셀)")
 
             # Preview rectangle on frame
-            if x_end > x_start and y_end > y_start:
-                preview_frame = frame_rgb.copy()
-                cv2.rectangle(preview_frame, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2)
-                st.image(preview_frame, caption="미리보기: 빨간 사각형이 제거될 영역", use_container_width=True)
-
-                st.success(f"✅ 선택된 영역: {x_end-x_start}x{y_end-y_start} 픽셀")
-            else:
-                st.warning("⚠️ 올바른 좌표를 입력하세요 (끝 좌표 > 시작 좌표)")
+            preview_frame = frame_rgb.copy()
+            cv2.rectangle(preview_frame, (x_start, y_start), (x_end, y_end), (255, 0, 0), 3)
+            st.image(preview_frame, caption="미리보기: 빨간 사각형이 제거될 영역", use_container_width=True)
 
             if st.button("🎬 동영상 워터마크 제거 시작", key="video_process_btn", type="primary"):
-                if x_end > x_start and y_end > y_start:
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    status_text.text("준비 중...")
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                status_text.text("준비 중...")
 
-                    def update_progress(p):
-                        progress_int = int(p * 100)
-                        progress_bar.progress(min(progress_int, 100))
-                        status_text.text(f"처리 중... {progress_int}% 완료")
+                def update_progress(p):
+                    progress_int = int(p * 100)
+                    progress_bar.progress(min(progress_int, 100))
+                    status_text.text(f"처리 중... {progress_int}% 완료")
 
-                    # Create mask from coordinates
-                    mask = np.zeros((video_height, video_width), dtype=np.uint8)
-                    mask[y_start:y_end, x_start:x_end] = 255
+                # Create mask from coordinates
+                mask = np.zeros((video_height, video_width), dtype=np.uint8)
+                mask[y_start:y_end, x_start:x_end] = 255
 
-                    output_file = tempfile.NamedTemporaryFile(delete=False, suffix='_fixed.mp4')
-                    output_path = output_file.name
-                    output_file.close()
+                output_file = tempfile.NamedTemporaryFile(delete=False, suffix='_fixed.mp4')
+                output_path = output_file.name
+                output_file.close()
 
-                    success, message = process_video_with_mask(video_path, output_path, mask, progress_callback=update_progress)
+                success, message = process_video_with_mask(video_path, output_path, mask, progress_callback=update_progress)
 
-                    if success:
-                        progress_bar.progress(100)
-                        status_text.text("작업 완료!")
-                        st.success("✅ 워터마크 제거 완료!")
-                        st.video(output_path)
-                        with open(output_path, 'rb') as f:
-                            st.download_button('📥 결과 동영상 다운로드', f, file_name='fixed_video.mp4')
-                    else:
-                        st.error(f"❌ 오류: {message}")
+                if success:
+                    progress_bar.progress(100)
+                    status_text.text("작업 완료!")
+                    st.success("✅ 워터마크 제거 완료!")
+                    st.video(output_path)
+                    with open(output_path, 'rb') as f:
+                        st.download_button('📥 결과 동영상 다운로드', f, file_name='fixed_video.mp4')
                 else:
-                    st.warning("⚠️ 먼저 올바른 워터마크 영역을 설정해주세요.")
+                    st.error(f"❌ 오류: {message}")
 
         vid_cap.release()
 
@@ -140,55 +133,49 @@ with tab2:
 
             st.markdown("### 워터마크 영역 설정")
 
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                pdf_x_start = st.number_input("X 시작", min_value=0, max_value=img_w, value=0, key="pdf_x_start")
-            with col2:
-                pdf_y_start = st.number_input("Y 시작", min_value=0, max_value=img_h, value=0, key="pdf_y_start")
-            with col3:
-                pdf_x_end = st.number_input("X 끝", min_value=0, max_value=img_w, value=min(200, img_w), key="pdf_x_end")
-            with col4:
-                pdf_y_end = st.number_input("Y 끝", min_value=0, max_value=img_h, value=min(100, img_h), key="pdf_y_end")
+            # 자동으로 오른쪽 하단 계산 (PDF 크기의 약 15% 영역)
+            logo_width_pdf = int(img_w * 0.15)
+            logo_height_pdf = int(img_h * 0.12)
+
+            # 오른쪽 하단 좌표 자동 계산
+            pdf_x_start = img_w - logo_width_pdf - 20
+            pdf_y_start = img_h - logo_height_pdf - 20
+            pdf_x_end = img_w - 10
+            pdf_y_end = img_h - 10
+
+            st.info(f"🎯 오른쪽 하단 로고 자동 선택됨 ({logo_width_pdf}x{logo_height_pdf} 픽셀)")
 
             # Preview rectangle
-            if pdf_x_end > pdf_x_start and pdf_y_end > pdf_y_start:
-                preview_img = np.array(pil_image)
-                cv2.rectangle(preview_img, (pdf_x_start, pdf_y_start), (pdf_x_end, pdf_y_end), (255, 0, 0), 3)
-                st.image(preview_img, caption="미리보기: 빨간 사각형이 제거될 영역", use_container_width=True)
-
-                st.success(f"✅ 선택된 영역: {pdf_x_end-pdf_x_start}x{pdf_y_end-pdf_y_start} 픽셀")
-            else:
-                st.warning("⚠️ 올바른 좌표를 입력하세요")
+            preview_img = np.array(pil_image)
+            cv2.rectangle(preview_img, (pdf_x_start, pdf_y_start), (pdf_x_end, pdf_y_end), (255, 0, 0), 3)
+            st.image(preview_img, caption="미리보기: 빨간 사각형이 제거될 영역", use_container_width=True)
 
             if st.button("📄 워터마크 제거 시작", key="pdf_process_btn", type="primary"):
-                if pdf_x_end > pdf_x_start and pdf_y_end > pdf_y_start:
-                    with st.spinner("PDF 처리 중..."):
-                        # Convert to normalized coordinates
-                        nx = pdf_x_start / img_w
-                        ny = pdf_y_start / img_h
-                        nw = (pdf_x_end - pdf_x_start) / img_w
-                        nh = (pdf_y_end - pdf_y_start) / img_h
-                        rect_coords = (nx, ny, nw, nh)
+                with st.spinner("PDF 처리 중..."):
+                    # Convert to normalized coordinates
+                    nx = pdf_x_start / img_w
+                    ny = pdf_y_start / img_h
+                    nw = (pdf_x_end - pdf_x_start) / img_w
+                    nh = (pdf_y_end - pdf_y_start) / img_h
+                    rect_coords = (nx, ny, nw, nh)
 
-                        output_path = input_path.replace('.pdf', '_fixed.pdf')
-                        if output_path == input_path:
-                            output_path = tempfile.NamedTemporaryFile(delete=False, suffix='_fixed.pdf').name
+                    output_path = input_path.replace('.pdf', '_fixed.pdf')
+                    if output_path == input_path:
+                        output_path = tempfile.NamedTemporaryFile(delete=False, suffix='_fixed.pdf').name
 
-                        success, msg = remove_watermark_from_pdf(
-                            input_path,
-                            output_path,
-                            rect=rect_coords,
-                            fill_color="auto"
-                        )
+                    success, msg = remove_watermark_from_pdf(
+                        input_path,
+                        output_path,
+                        rect=rect_coords,
+                        fill_color="auto"
+                    )
 
-                        if success:
-                            st.success(f"✅ {msg}")
-                            with open(output_path, 'rb') as f:
-                                st.download_button('📥 결과 PDF 다운로드', f, file_name='fixed_document.pdf')
-                        else:
-                            st.error(f"❌ 실패: {msg}")
-                else:
-                    st.warning("⚠️ 먼저 올바른 워터마크 영역을 설정해주세요.")
+                    if success:
+                        st.success(f"✅ {msg}")
+                        with open(output_path, 'rb') as f:
+                            st.download_button('📥 결과 PDF 다운로드', f, file_name='fixed_document.pdf')
+                    else:
+                        st.error(f"❌ 실패: {msg}")
 
 st.markdown("---")
-st.caption("💡 팁: 좌표 입력이 어려우면 ngrok으로 로컬에서 실행하세요. 로컬에서는 마우스로 그릴 수 있습니다!")
+st.caption("💡 팁: 오른쪽 하단 로고가 자동으로 선택됩니다. 다른 위치는 로컬(ngrok)에서 마우스로 그릴 수 있습니다!")
