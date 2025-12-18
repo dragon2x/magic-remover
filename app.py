@@ -62,17 +62,7 @@ with tab1:
             
             st.info("워터마크 영역을 하얀색으로 덮어주세요.")
             
-            # Debug: Show the image to verify it's loaded correctly
-            with st.expander("프레임 미리보기 (디버그)", expanded=False):
-                st.image(pil_image, caption=f"프레임 {frame_index}")
-        else:
-            st.error(f"프레임을 읽을 수 없습니다. 프레임 인덱스: {frame_index}, ret: {ret}")
-            vid_cap.release()
-            st.stop()
-        
-        if ret and frame is not None:
-            
-            # Canvas logic (Same as before)
+            # Canvas logic
             max_width = 700 
             img_w, img_h = pil_image.size
             if img_w > max_width:
@@ -82,12 +72,16 @@ with tab1:
             else:
                 canvas_width = img_w
                 canvas_height = img_h
+            
+            # Show frame preview above canvas
+            st.image(pil_image, caption=f"프레임 {frame_index}", width=canvas_width)
+            st.caption("⬇️ 위 이미지를 참고하여 아래 캔버스에 워터마크 영역을 칠하세요")
 
             canvas_result = st_canvas(
                 fill_color="rgba(255, 255, 255, 1.0)",
                 stroke_width=stroke_width if drawing_mode_val == "freedraw" else 1,
                 stroke_color=stroke_color,
-                background_color=bg_color,
+                background_color="#eeeeee",
                 background_image=pil_image,
                 update_streamlit=realtime_update,
                 height=canvas_height,
