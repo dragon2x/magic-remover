@@ -55,12 +55,22 @@ with tab1:
         vid_cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
         ret, frame = vid_cap.read()
         
-        if ret:
+        if ret and frame is not None:
             # Convert Frame (BGR) to RGB for display
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             pil_image = Image.fromarray(frame_rgb)
             
             st.info("워터마크 영역을 하얀색으로 덮어주세요.")
+            
+            # Debug: Show the image to verify it's loaded correctly
+            with st.expander("프레임 미리보기 (디버그)", expanded=False):
+                st.image(pil_image, caption=f"프레임 {frame_index}", use_container_width=True)
+        else:
+            st.error(f"프레임을 읽을 수 없습니다. 프레임 인덱스: {frame_index}, ret: {ret}")
+            vid_cap.release()
+            st.stop()
+        
+        if ret and frame is not None:
             
             # Canvas logic (Same as before)
             max_width = 700 

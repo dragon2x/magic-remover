@@ -1,6 +1,6 @@
 streamlit==1.38.0
 opencv-python-headless
-numpy==1.26.4
+numpy>=1.26.0
 streamlit-drawable-canvas
 pillow>=10.0.0
 moviepy==1.0.3
