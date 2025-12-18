@@ -73,15 +73,18 @@ def process_video_with_mask(input_path, output_path, mask_image, progress_callba
                Must match video aspect ratio/size roughly, or be resized.
     progress_callback: Function that accepts a float (0.0 to 1.0) for progress updates.
     """
+    clip = None
+    new_clip = None
+
     try:
-        # Load video
-        clip = VideoFileClip(input_path)
-        
+        # Load video with reduced memory footprint
+        clip = VideoFileClip(input_path, audio=True)
+
         # Prepare mask
         # Resize mask to match video dimensions if needed
         mask_h, mask_w = mask_image.shape[:2]
         video_w, video_h = clip.size
-        
+
         # Ensure mask matches video size
         if (mask_w != video_w) or (mask_h != video_h):
              # Resize mask using OpenCV (handling the boolean/grayscale properly)
@@ -92,29 +95,19 @@ def process_video_with_mask(input_path, output_path, mask_image, progress_callba
         # Threshold to ensure binary mask for inpainting (0 or 255)
         # Assuming input mask might be anti-aliased or have alpha
         _, mask_binary = cv2.threshold(mask_resized, 127, 255, cv2.THRESH_BINARY)
-        
+
         # Optimization: Calculate Bounding Box (ROI) of the mask
         # This allows us to inpaint ONLY the watermark area, not the whole 4K frame.
         points = cv2.findNonZero(mask_binary)
         roi = None
         if points is not None:
             roi = cv2.boundingRect(points) # (x, y, w, h)
-        
-        # Define the processing function for MoviePy
-        def process_frame(get_frame, t):
-            frame = get_frame(t)
-            # frame is HxWx3 (RGB)
-            # If no mask (empty), return original
-            if roi is None:
-                 return frame
-            return inpaint_frame_opencv(frame, mask_binary, roi=roi)
 
         # Apply processing
         # We use fl_image which applies the function to every frame
-        # We need to wrap our simple inpaint_frame to match fl_image signature which is f(image)
         # Note: We pass the mask_binary and ROI captured in closure
         new_clip = clip.fl_image(lambda img: inpaint_frame_opencv(img, mask_binary, roi=roi) if roi else img)
-        
+
         # Setup Logger
         logger = None
         if progress_callback:
@@ -122,15 +115,32 @@ def process_video_with_mask(input_path, output_path, mask_image, progress_callba
         else:
             logger = 'bar'
 
-        # Write output file
-        # codec='libx264' is standard for mp4. audio_codec='aac' for audio.
-        # preset='ultrafast' trades compression for speed. 'medium' is default.
-        # threads=4 to use multi-threading for encoding
-        new_clip.write_videofile(output_path, codec='libx264', audio_codec='aac', logger=logger, preset='faster', threads=4)
-        
-        clip.close()
-        new_clip.close()
+        # Write output file with optimized settings for Streamlit Cloud
+        # Use lower quality preset for faster processing and less memory
+        new_clip.write_videofile(
+            output_path,
+            codec='libx264',
+            audio_codec='aac',
+            logger=logger,
+            preset='ultrafast',  # Faster encoding, less memory
+            threads=2,  # Reduced threads for cloud environment
+            bitrate='2000k'  # Lower bitrate to reduce memory usage
+        )
+
         return True, "Success"
-        
+
     except Exception as e:
         return False, str(e)
+
+    finally:
+        # Ensure clips are closed to free memory
+        if clip is not None:
+            try:
+                clip.close()
+            except:
+                pass
+        if new_clip is not None:
+            try:
+                new_clip.close()
+            except:
+                pass

@@ -141,3 +141,20 @@ cython_debug/
 *.mp4
 *.avi
 *.mov
+
+# ngrok
+ngrok.exe
+ngrok
+*.ngrok
+
+# Temporary files
+tmp*
+*TEMP*
+._*
+
+# PDF files
+*_fixed.pdf
+
+# Local testing
+README_NGROK.md
+start_with_ngrok.bat
