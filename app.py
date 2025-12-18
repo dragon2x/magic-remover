@@ -73,16 +73,15 @@ with tab1:
                 canvas_width = img_w
                 canvas_height = img_h
             
-            # Show frame preview above canvas
-            st.image(pil_image, caption=f"프레임 {frame_index}", width=canvas_width)
-            st.caption("⬇️ 위 이미지를 참고하여 아래 캔버스에 워터마크 영역을 칠하세요")
+            # Resize image to exactly match canvas dimensions (fixes display on Streamlit Cloud)
+            canvas_bg_image = pil_image.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
 
             canvas_result = st_canvas(
                 fill_color="rgba(255, 255, 255, 1.0)",
                 stroke_width=stroke_width if drawing_mode_val == "freedraw" else 1,
                 stroke_color=stroke_color,
-                background_color="#eeeeee",
-                background_image=pil_image,
+                background_color="#ffffff",
+                background_image=canvas_bg_image,
                 update_streamlit=realtime_update,
                 height=canvas_height,
                 width=canvas_width,
