@@ -75,9 +75,10 @@ with tab1:
             
             # Resize image to exactly match canvas dimensions
             canvas_bg_image = pil_image.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
-            # Convert to RGBA to ensure compatibility with canvas
-            if canvas_bg_image.mode != 'RGBA':
-                canvas_bg_image = canvas_bg_image.convert('RGBA')
+            
+            # Ensure RGB mode for canvas
+            if canvas_bg_image.mode == 'RGBA':
+                canvas_bg_image = canvas_bg_image.convert('RGB')
 
             canvas_result = st_canvas(
                 fill_color="rgba(255, 255, 255, 1.0)",
