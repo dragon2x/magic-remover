@@ -133,11 +133,11 @@ with tab2:
 
             col1_pdf, col2_pdf = st.columns(2)
             with col1_pdf:
-                pdf_x_start = st.number_input("X 시작", min_value=0, max_value=img_w, value=1101, step=1, key="pdf_x1")
-                pdf_y_start = st.number_input("Y 시작", min_value=0, max_value=img_h, value=660, step=1, key="pdf_y1")
+                pdf_x_start = st.number_input("X 시작", min_value=0, max_value=img_w, value=1265, step=1, key="pdf_x1")
+                pdf_y_start = st.number_input("Y 시작", min_value=0, max_value=img_h, value=745, step=1, key="pdf_y1")
             with col2_pdf:
-                pdf_x_end = st.number_input("X 끝", min_value=0, max_value=img_w, value=1238, step=1, key="pdf_x2")
-                pdf_y_end = st.number_input("Y 끝", min_value=0, max_value=img_h, value=681, step=1, key="pdf_y2")
+                pdf_x_end = st.number_input("X 끝", min_value=0, max_value=img_w, value=1369, step=1, key="pdf_x2")
+                pdf_y_end = st.number_input("Y 끝", min_value=0, max_value=img_h, value=762, step=1, key="pdf_y2")
 
             # Preview rectangle
             preview_img = np.array(pil_image)
