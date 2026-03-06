@@ -15,7 +15,7 @@ from document_processor import remove_watermark_from_pdf, get_pdf_preview
 def get_video_info(video_path):
     """동영상 업로드 시 정보와 첫 프레임 반환"""
     if video_path is None:
-        return None, "", 0, 0, 0, 0, gr.update(maximum=0, value=0)
+        return None, "", 0, 0, 0, 0, gr.Slider(maximum=0, value=0)
 
     cap = cv2.VideoCapture(video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -26,7 +26,7 @@ def get_video_info(video_path):
     cap.release()
 
     if not ret or frame is None:
-        return None, "프레임을 읽을 수 없습니다.", 0, 0, 0, 0, gr.update(maximum=0, value=0)
+        return None, "프레임을 읽을 수 없습니다.", 0, 0, 0, 0, gr.Slider(maximum=0, value=0)
 
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     info_text = f"📹 비디오 정보: {width}x{height}, 총 {total_frames} 프레임"
@@ -38,7 +38,7 @@ def get_video_info(video_path):
         height,
         1101,  # default x_start
         660,   # default y_start
-        gr.update(maximum=max(total_frames - 1, 0), value=0),
+        gr.Slider(maximum=max(total_frames - 1, 0), value=0),
     )
 
 
@@ -64,7 +64,7 @@ def update_frame_preview(video_path, frame_index, x_start, y_start, x_end, y_end
 def process_video(video_path, x_start, y_start, x_end, y_end, progress=gr.Progress()):
     """동영상 워터마크 제거 실행"""
     if video_path is None:
-        return "동영상을 먼저 업로드하세요.", None, gr.update(visible=False)
+        return "동영상을 먼저 업로드하세요.", None, gr.DownloadButton(visible=False)
 
     cap = cv2.VideoCapture(video_path)
     video_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -88,9 +88,9 @@ def process_video(video_path, x_start, y_start, x_end, y_end, progress=gr.Progre
 
     if success:
         download_name = f"{original_name}_fixed.mp4"
-        return "✅ 워터마크 제거 완료!", output_path, gr.update(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
+        return "✅ 워터마크 제거 완료!", output_path, gr.DownloadButton(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
     else:
-        return f"❌ 오류: {message}", None, gr.update(visible=False)
+        return f"❌ 오류: {message}", None, gr.DownloadButton(visible=False)
 
 
 # =====================
@@ -144,11 +144,11 @@ def process_pdf(pdf_path, x_start, y_start, x_end, y_end):
     """PDF 워터마크 제거 실행"""
     path = _resolve_pdf_path(pdf_path)
     if path is None:
-        return "PDF를 먼저 업로드하세요.", gr.update(visible=False)
+        return "PDF를 먼저 업로드하세요.", gr.DownloadButton(visible=False)
 
     pil_image, _ = get_pdf_preview(path, 0)
     if pil_image is None:
-        return "PDF 미리보기 생성 실패", gr.update(visible=False)
+        return "PDF 미리보기 생성 실패", gr.DownloadButton(visible=False)
 
     img_w, img_h = pil_image.size
     x_start, y_start, x_end, y_end = int(x_start), int(y_start), int(x_end), int(y_end)
@@ -168,9 +168,9 @@ def process_pdf(pdf_path, x_start, y_start, x_end, y_end):
 
     if success:
         download_name = f"{original_name}_fixed.pdf"
-        return f"✅ {msg}", gr.update(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
+        return f"✅ {msg}", gr.DownloadButton(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
     else:
-        return f"❌ 실패: {msg}", gr.update(visible=False)
+        return f"❌ 실패: {msg}", gr.DownloadButton(visible=False)
 
 
 # =====================
