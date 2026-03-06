@@ -177,8 +177,8 @@ def process_pdf(pdf_path, x_start, y_start, x_end, y_end):
 # Build Gradio UI
 # =====================
 
-with gr.Blocks(title="Magic Remover", theme=gr.themes.Soft()) as demo:
-    gr.Markdown("# 🪄 매직 워터마크 제거기 (All-in-One)")
+with gr.Blocks(title="NotebookLM 워터마크 제거기", theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# 🪄 NotebookLM 워터마크 제거기")
     gr.Markdown("동영상과 문서의 워터마크를 손쉽게 제거하세요.")
 
     with gr.Tabs():
