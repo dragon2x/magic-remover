@@ -64,7 +64,7 @@ def update_frame_preview(video_path, frame_index, x_start, y_start, x_end, y_end
 def process_video(video_path, x_start, y_start, x_end, y_end, progress=gr.Progress()):
     """동영상 워터마크 제거 실행"""
     if video_path is None:
-        return "동영상을 먼저 업로드하세요.", None, gr.File(visible=False)
+        return "동영상을 먼저 업로드하세요.", None, gr.DownloadButton(visible=False)
 
     cap = cv2.VideoCapture(video_path)
     video_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -88,9 +88,9 @@ def process_video(video_path, x_start, y_start, x_end, y_end, progress=gr.Progre
 
     if success:
         download_name = f"{original_name}_fixed.mp4"
-        return f"✅ 워터마크 제거 완료!", output_path, gr.File(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
+        return f"✅ 워터마크 제거 완료!", output_path, gr.DownloadButton(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
     else:
-        return f"❌ 오류: {message}", None, gr.File(visible=False)
+        return f"❌ 오류: {message}", None, gr.DownloadButton(visible=False)
 
 
 # =====================
@@ -144,11 +144,11 @@ def process_pdf(pdf_path, x_start, y_start, x_end, y_end):
     """PDF 워터마크 제거 실행"""
     path = _resolve_pdf_path(pdf_path)
     if path is None:
-        return "PDF를 먼저 업로드하세요.", gr.File(visible=False)
+        return "PDF를 먼저 업로드하세요.", gr.DownloadButton(visible=False)
 
     pil_image, _ = get_pdf_preview(path, 0)
     if pil_image is None:
-        return "PDF 미리보기 생성 실패", gr.File(visible=False)
+        return "PDF 미리보기 생성 실패", gr.DownloadButton(visible=False)
 
     img_w, img_h = pil_image.size
     x_start, y_start, x_end, y_end = int(x_start), int(y_start), int(x_end), int(y_end)
@@ -168,9 +168,9 @@ def process_pdf(pdf_path, x_start, y_start, x_end, y_end):
 
     if success:
         download_name = f"{original_name}_fixed.pdf"
-        return f"✅ {msg}", gr.File(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
+        return f"✅ {msg}", gr.DownloadButton(value=output_path, label=f"📥 {download_name} 다운로드", visible=True)
     else:
-        return f"❌ 실패: {msg}", gr.File(visible=False)
+        return f"❌ 실패: {msg}", gr.DownloadButton(visible=False)
 
 
 # =====================
@@ -209,7 +209,7 @@ with gr.Blocks(title="Magic Remover", theme=gr.themes.Soft()) as demo:
             video_btn = gr.Button("🎬 동영상 워터마크 제거 시작", variant="primary")
             video_status = gr.Textbox(label="상태", interactive=False)
             video_output = gr.Video(label="결과 미리보기")
-            video_download = gr.File(label="📥 결과 동영상 다운로드", visible=False)
+            video_download = gr.DownloadButton("📥 결과 동영상 다운로드", visible=False, variant="secondary")
 
             # Events - video upload
             video_input.change(
@@ -259,7 +259,7 @@ with gr.Blocks(title="Magic Remover", theme=gr.themes.Soft()) as demo:
 
             pdf_btn = gr.Button("📄 워터마크 제거 시작", variant="primary")
             pdf_status = gr.Textbox(label="상태", interactive=False)
-            pdf_output = gr.File(label="📥 결과 PDF 다운로드", visible=False)
+            pdf_output = gr.DownloadButton("📥 결과 PDF 다운로드", visible=False, variant="secondary")
 
             # Events - PDF upload
             pdf_input.change(
