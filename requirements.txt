@@ -1,5 +1,5 @@
 gradio>=4.0.0
-pyaudioop
+audioop-lts
 opencv-python-headless
 numpy
 pillow>=10.0.0
